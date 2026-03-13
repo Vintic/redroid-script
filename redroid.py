@@ -4,10 +4,10 @@ import argparse
 from stuff.gapps import Gapps
 from stuff.litegapps import LiteGapps
 from stuff.magisk import Magisk
+from stuff.microg import MicroG
 from stuff.mindthegapps import MindTheGapps
 from stuff.ndk import Ndk
-from stuff.houdini import Houdini
-from stuff.houdini_hack import Houdini_Hack
+from stuff.reZygisk import ReZygisk
 from stuff.widevine import Widevine
 import tools.helper as helper
 import subprocess
@@ -35,13 +35,17 @@ def main():
                         dest='ndk',
                         help='Install libndk translation files',
                         action='store_true')
-    parser.add_argument('-i', '--install-houdini',
-                        dest='houdini',
-                        help='Install houdini files',
-                        action='store_true')
     parser.add_argument('-mtg', '--install-mindthegapps',
                         dest='mindthegapps',
                         help='Install MindTheGapps to ReDroid',
+                        action='store_true')
+    parser.add_argument('-mic', '--install-microg',
+                        dest='microg',
+                        help='Install MicroG to ReDroid',
+                        action='store_true')
+    parser.add_argument('-rz', '--install-rezygisk',
+                        dest='rezygisk',
+                        help='Install ReZygisk to ReDroid',
                         action='store_true')
     parser.add_argument('-m', '--install-magisk', dest='magisk',
                         help='Install Magisk ( Bootless )',
@@ -75,6 +79,14 @@ def main():
         MindTheGapps(args.android).install()
         dockerfile = dockerfile + "COPY mindthegapps /\n"
         tags.append("mindthegapps")
+    if args.microg:
+        MicroG("0.3.13").install()
+        dockerfile = dockerfile + "COPY microg /\n"
+        tags.append("microg")
+    if args.rezygisk:
+        ReZygisk().install()
+        dockerfile = dockerfile + "COPY rezygisk_overlay /\n"
+        tags.append("rezygisk")
     if args.ndk:
         if args.android in ["11.0.0", "12.0.0", "12.0.0_64only"]:
             arch = helper.host()[0]
@@ -85,18 +97,6 @@ def main():
         else:
             helper.print_color(
                 "WARNING: Libndk seems to work only on redroid:11.0.0 or redroid:12.0.0", helper.bcolors.YELLOW)
-    if args.houdini:
-        if args.android in ["8.1.0", "9.0.0", "11.0.0", "12.0.0", "13.0.0", "14.0.0"]:
-            arch = helper.host()[0]
-            if arch == "x86" or arch == "x86_64":
-                Houdini(args.android).install()
-                if not args.android == "8.1.0":
-                    Houdini_Hack(args.android).install()
-                dockerfile = dockerfile+"COPY houdini /\n"
-                tags.append("houdini") 
-        else:
-            helper.print_color(
-                "WARNING: Houdini seems to work only above redroid:11.0.0", helper.bcolors.YELLOW)
     if args.magisk:
         Magisk().install()
         dockerfile = dockerfile+"COPY magisk /\n"

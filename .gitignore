@@ -112,3 +112,13 @@ houdini
 litegapps
 mindthegapps
 Dockerfile
+
+./gapps
+./magisk
+./ndk
+./widevine
+./houdini
+./litegapps
+./mindthegapps
+./Dockerfile
+./microg
