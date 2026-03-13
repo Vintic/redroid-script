@@ -28,9 +28,14 @@ service bootanim /system/bin/bootanimation
     bootanim_component = """
 on post-fs-data
     start logd
-    exec u:r:su:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
-    exec u:r:magisk:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
-    exec u:r:update_engine:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
+    # ========== SELinux策略配置 ==========
+    # 注意：以下magiskpolicy命令仅在SELinux启用时才能正常运行
+    # 在redroid等禁用SELinux的环境中，这些命令会导致进程崩溃(SIGABRT信号)
+    # 如果在SELinux禁用的环境中遇到magiskpolicy崩溃，请注释掉下面三行
+    # exec u:r:su:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
+    # exec u:r:magisk:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
+    # exec u:r:update_engine:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
+    # =======================================
     exec u:r:su:s0 root root -- {MAGISKSYSTEMDIR}/{magisk_name} --auto-selinux --setup-sbin {MAGISKSYSTEMDIR} {MAGISKTMP}
     exec u:r:su:s0 root root -- {MAGISKTMP}/magisk --auto-selinux --post-fs-data
 on nonencrypted
