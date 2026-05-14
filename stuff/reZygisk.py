@@ -56,10 +56,16 @@ on early-init
         print_color("Deploying ReZygisk binaries...", bcolors.GREEN)
 
         # 1. 拷贝核心库和守护进程
-        arch_map = {
-            "64": "arm64-v8a",
-            "32": "armeabi-v7a"
-        }
+        if self.machine[0] == "arm64":
+            arch_map = {
+                "64": "arm64-v8a",
+                "32": "armeabi-v7a"
+            }
+        else:
+            arch_map = {
+                "64": "x86_64",
+                "32": "x86"
+            }
 
         # 64-bit deployment
         src_lib64_dir = os.path.join(self.extract_to, "lib", arch_map["64"])
@@ -68,24 +74,28 @@ on early-init
             shutil.copyfile(os.path.join(src_lib64_dir, "libzygisk.so"), 
                             os.path.join(self.lib64_dir, "librezygisk.so"))
             # Also copy ptrace helper
-            shutil.copyfile(os.path.join(src_lib64_dir, "libzygisk_ptrace.so"), 
-                            os.path.join(self.lib64_dir, "libzygisk_ptrace.so"))
-            print_color("Copied 64-bit libraries", bcolors.GREEN)
+            if os.path.exists(os.path.join(src_lib64_dir, "libzygisk_ptrace.so")):
+                shutil.copyfile(os.path.join(src_lib64_dir, "libzygisk_ptrace.so"), 
+                                os.path.join(self.lib64_dir, "libzygisk_ptrace.so"))
+            print_color(f"Copied 64-bit libraries ({arch_map['64']})", bcolors.GREEN)
         
         src_bin64_dir = os.path.join(self.extract_to, "bin", arch_map["64"])
         if os.path.exists(src_bin64_dir):
-            shutil.copyfile(os.path.join(src_bin64_dir, "zygiskd"), 
+            # Check for zygiskd (v1.0.0-rc.4+) or rezygiskd (older)
+            daemon_name = "zygiskd" if os.path.exists(os.path.join(src_bin64_dir, "zygiskd")) else "rezygiskd"
+            shutil.copyfile(os.path.join(src_bin64_dir, daemon_name), 
                             os.path.join(self.bin_dir, "rezygiskd"))
-            print_color("Copied 64-bit zygiskd (as rezygiskd)", bcolors.GREEN)
+            print_color(f"Copied 64-bit {daemon_name} (as rezygiskd)", bcolors.GREEN)
 
         # 32-bit deployment (libraries only, usually daemon is 64-bit)
         src_lib32_dir = os.path.join(self.extract_to, "lib", arch_map["32"])
         if os.path.exists(src_lib32_dir):
             shutil.copyfile(os.path.join(src_lib32_dir, "libzygisk.so"), 
                             os.path.join(self.lib_dir, "librezygisk.so"))
-            shutil.copyfile(os.path.join(src_lib32_dir, "libzygisk_ptrace.so"), 
-                            os.path.join(self.lib_dir, "libzygisk_ptrace.so"))
-            print_color("Copied 32-bit libraries", bcolors.GREEN)
+            if os.path.exists(os.path.join(src_lib32_dir, "libzygisk_ptrace.so")):
+                shutil.copyfile(os.path.join(src_lib32_dir, "libzygisk_ptrace.so"), 
+                                os.path.join(self.lib_dir, "libzygisk_ptrace.so"))
+            print_color(f"Copied 32-bit libraries ({arch_map['32']})", bcolors.GREEN)
 
         # 3. 核心注入：修改 init.rc 逻辑
         rezygisk_rc_path = os.path.join(self.target_dir, "rezygisk.rc")
