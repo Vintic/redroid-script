@@ -68,6 +68,8 @@ class bcolors:
     RED = '\033[31m'
     YELLOW = '\033[33m'
     GREEN = '\033[32m'
+    CYAN = '\033[36m'
+    BLUE = '\033[34m'
     ENDC = '\033[0m'
 
 def print_color(str, color):

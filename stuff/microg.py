@@ -114,6 +114,34 @@ class MicroG(General):
             shutil.copy(src_file, dest_path)
             print_color(f"Copied {apk_key} to {dest_path}", bcolors.GREEN)
 
+        # Add privapp-permissions XML
+        permissions_dir = os.path.join(self.copy_dir, "system", "etc", "permissions")
+        os.makedirs(permissions_dir, exist_ok=True)
+        permissions_file = os.path.join(permissions_dir, "privapp-permissions-microg.xml")
+        
+        with open(permissions_file, "w") as f:
+            f.write("""<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <privapp-permissions package="com.google.android.gms">
+        <permission name="android.permission.FAKE_PACKAGE_SIGNATURE"/>
+        <permission name="android.permission.INSTALL_LOCATION_PROVIDER"/>
+        <permission name="android.permission.INTERACT_ACROSS_USERS"/>
+        <permission name="android.permission.READ_PRIVILEGED_PHONE_STATE"/>
+        <permission name="android.permission.UPDATE_DEVICE_STATS"/>
+        <permission name="android.permission.UPDATE_APP_OPS_STATS"/>
+        <permission name="android.permission.DUMP"/>
+        <permission name="android.permission.GET_ACCOUNTS_PRIVILEGED"/>
+    </privapp-permissions>
+    <privapp-permissions package="com.android.vending">
+        <permission name="android.permission.FAKE_PACKAGE_SIGNATURE"/>
+        <permission name="android.permission.INSTALL_PACKAGES"/>
+        <permission name="android.permission.DELETE_PACKAGES"/>
+        <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
+    </privapp-permissions>
+</permissions>
+""")
+        print_color("Created privapp-permissions-microg.xml", bcolors.GREEN)
+
     def install(self):
         """
         Install MicroG components (GmsCore, GsfProxy, Phonesky APKs).

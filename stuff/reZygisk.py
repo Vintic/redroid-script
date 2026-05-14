@@ -1,6 +1,7 @@
 import os
 import shutil
 import re
+import zipfile
 from stuff.general import General
 from tools.helper import bcolors, download_file, host, print_color, run, get_download_dir
 
@@ -15,7 +16,9 @@ class ReZygisk(General):
     
     # 注入路径
     target_dir = os.path.join(copy_dir, "system", "etc", "init")
-    lib_dir = os.path.join(copy_dir, "system", "lib64") # RK3588 是 64 位系统
+    lib_dir = os.path.join(copy_dir, "system", "lib")
+    lib64_dir = os.path.join(copy_dir, "system", "lib64")
+    bin_dir = os.path.join(copy_dir, "system", "bin")
     
     machine = host()
 
@@ -23,7 +26,7 @@ class ReZygisk(General):
     # 这样所有 fork 自 zygote 的应用都会加载 ReZygisk
     environ_override = """
 on early-init
-    export LD_PRELOAD /system/lib64/librezygisk.so
+    export LD_PRELOAD /system/lib64/librezygisk.so:/system/lib/librezygisk.so
 """
 
     def download(self):
@@ -38,39 +41,83 @@ on early-init
     def copy(self):
         if os.path.exists(self.copy_dir):
             shutil.rmtree(self.copy_dir)
+        if os.path.exists(self.extract_to):
+            shutil.rmtree(self.extract_to)
         
         os.makedirs(self.target_dir, exist_ok=True)
         os.makedirs(self.lib_dir, exist_ok=True)
+        os.makedirs(self.lib64_dir, exist_ok=True)
+        os.makedirs(self.bin_dir, exist_ok=True)
+
+        print_color("Extracting ReZygisk...", bcolors.GREEN)
+        with zipfile.ZipFile(self.dl_file_name, 'r') as zip_ref:
+            zip_ref.extractall(self.extract_to)
 
         print_color("Deploying ReZygisk binaries...", bcolors.GREEN)
 
-        # 1. 解压并拷贝核心文件
-        # 假设解压后得到 rezygisk 和 librezygisk.so
-        # 实际操作中你需要使用 zipfile 模块处理 self.dl_file_name
-        
-        # 模拟拷贝 (实际逻辑请根据解压后的路径调整)
-        # shutil.copyfile(f"{self.extract_to}/rezygisk", os.path.join(self.lib_dir, "rezygisk"))
-        # shutil.copyfile(f"{self.extract_to}/librezygisk.so", os.path.join(self.lib_dir, "librezygisk.so"))
+        # 1. 拷贝核心库和守护进程
+        arch_map = {
+            "64": "arm64-v8a",
+            "32": "armeabi-v7a"
+        }
 
-        # 2. 核心注入：修改 init.rc 逻辑
-        # 我们不破坏原有的 bootanim，而是新建一个 rc 文件让 init 加载
-        rezygisk_rc_path = os.path.join(self.target_dir, "rezygisk.rc")
+        # 64-bit deployment
+        src_lib64_dir = os.path.join(self.extract_to, "lib", arch_map["64"])
+        if os.path.exists(src_lib64_dir):
+            # libzygisk.so -> librezygisk.so (to match LD_PRELOAD config)
+            shutil.copyfile(os.path.join(src_lib64_dir, "libzygisk.so"), 
+                            os.path.join(self.lib64_dir, "librezygisk.so"))
+            # Also copy ptrace helper
+            shutil.copyfile(os.path.join(src_lib64_dir, "libzygisk_ptrace.so"), 
+                            os.path.join(self.lib64_dir, "libzygisk_ptrace.so"))
+            print_color("Copied 64-bit libraries", bcolors.GREEN)
         
+        src_bin64_dir = os.path.join(self.extract_to, "bin", arch_map["64"])
+        if os.path.exists(src_bin64_dir):
+            shutil.copyfile(os.path.join(src_bin64_dir, "zygiskd"), 
+                            os.path.join(self.bin_dir, "rezygiskd"))
+            print_color("Copied 64-bit zygiskd (as rezygiskd)", bcolors.GREEN)
+
+        # 32-bit deployment (libraries only, usually daemon is 64-bit)
+        src_lib32_dir = os.path.join(self.extract_to, "lib", arch_map["32"])
+        if os.path.exists(src_lib32_dir):
+            shutil.copyfile(os.path.join(src_lib32_dir, "libzygisk.so"), 
+                            os.path.join(self.lib_dir, "librezygisk.so"))
+            shutil.copyfile(os.path.join(src_lib32_dir, "libzygisk_ptrace.so"), 
+                            os.path.join(self.lib_dir, "libzygisk_ptrace.so"))
+            print_color("Copied 32-bit libraries", bcolors.GREEN)
+
+        # 3. 核心注入：修改 init.rc 逻辑
+        rezygisk_rc_path = os.path.join(self.target_dir, "rezygisk.rc")
         with open(rezygisk_rc_path, "w") as f:
-            # 在 post-fs-data 阶段做一些初始化，比如创建 LSPosed 需要的目录
             f.write("""
 on post-fs-data
     mkdir /data/adb 0755 root root
     mkdir /data/adb/rezygisk 0755 root root
-    # 如果有其他初始化逻辑写在这里
+
+service rezygiskd /system/bin/rezygiskd
+    class main
+    user root
+    group root
+    capabilities SYS_ADMIN
+    oneshot
 """)
 
-        # 3. 注入环境变量（这是 ReZygisk 工作的关键）
-        # 在 redroid 中，通过这种方式能确保 Zygote 启动时带上注入库
+        # 4. 注入环境变量
         environ_rc_path = os.path.join(self.target_dir, "env_rezygisk.rc")
         with open(environ_rc_path, "w") as f:
             f.write(self.environ_override)
 
         # 设置权限
         run(["chmod", "-R", "755", self.copy_dir])
+        # Ensure rezygiskd is executable
+        daemon_path = os.path.join(self.bin_dir, "rezygiskd")
+        if os.path.exists(daemon_path):
+            run(["chmod", "755", daemon_path])
+            
         print_color("ReZygisk deployment scripts generated successfully.", bcolors.CYAN)
+
+    def install(self):
+        print_color("Installing ReZygisk .....", bcolors.GREEN)
+        self.download()
+        self.copy()

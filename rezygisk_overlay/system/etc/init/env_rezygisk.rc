@@ -1,0 +1,3 @@
+
+on early-init
+    export LD_PRELOAD /system/lib64/librezygisk.so:/system/lib/librezygisk.so

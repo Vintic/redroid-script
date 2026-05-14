@@ -1,0 +1,11 @@
+
+on post-fs-data
+    mkdir /data/adb 0755 root root
+    mkdir /data/adb/rezygisk 0755 root root
+
+service rezygiskd /system/bin/rezygiskd
+    class main
+    user root
+    group root
+    capabilities SYS_ADMIN
+    oneshot
