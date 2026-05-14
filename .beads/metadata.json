@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "redroid_script",
+  "project_id": "1854901c-1025-4908-ac5f-d4f493104890"
+}
