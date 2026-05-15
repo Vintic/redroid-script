@@ -15,7 +15,9 @@ We are working on a fork from `https://github.com/DingoDemon/redroid-script.git`
 - [x] Verify `MicroG` installation logic.
 - [x] Implement `Integrity-Box` integration in `stuff/integrity_box.py`.
 - [x] Implement `DeviceSpoofLab` integration in `stuff/devicespooflab.py`.
-- [x] Test the combined build with Magisk, ReZygisk, MicroG, Integrity-Box, and DeviceSpoofLab.
+- [ ] Implement `Frida` integration in `stuff/frida.py`.
+- [ ] Test the combined build with Magisk, ReZygisk, MicroG, Integrity-Box, DeviceSpoofLab, and Frida.
+
 
 ## Key Files
 - `redroid.py`: Entry point for building the Docker image.
