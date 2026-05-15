@@ -44,7 +44,7 @@ on property:vold.decrypt=trigger_restart_framework
 on property:sys.boot_completed=1
     mkdir /data/adb/magisk 755
     exec u:r:su:s0 root root -- {MAGISKTMP}/magisk --auto-selinux --boot-complete
-    exec -- /system/bin/sh -c "if [ ! -e /data/data/io.github.huskydg.magisk ] ; then pm install /system/etc/init/magisk/magisk.apk ; fi"
+    exec -- /system/bin/sh -c "if [ ! -e /data/data/com.topjohnwu.magisk ] && [ ! -e /data/data/io.github.huskydg.magisk ] ; then pm install /system/etc/init/magisk/magisk.apk ; fi"
    
 on property:init.svc.zygote=restarting
     exec u:r:su:s0 root root -- {MAGISKTMP}/magisk --auto-selinux --zygote-restart
@@ -97,6 +97,32 @@ export PATH=/sbin:/system/bin:/system/xbin:$PATH
 echo "[$(date)] Stage: $STAGE" >> "$LOG_FILE"
 
 if [ "$STAGE" = "post-fs-data" ]; then
+    # Populate /data/adb/magisk with binaries
+    mkdir -p /data/adb/magisk
+    for b in magisk magiskinit magiskpolicy busybox magiskboot; do
+        if [ -f "/system/etc/init/magisk/$b" ]; then
+            cp "/system/etc/init/magisk/$b" "/data/adb/magisk/$b"
+            chmod 755 "/data/adb/magisk/$b"
+        fi
+    done
+
+    # Create symlinks in /system/bin and /system/xbin for better compatibility
+    # Ensure we replace existing su binaries to avoid confusion
+    [ -L /system/bin/magisk ] || ln -sf /sbin/magisk /system/bin/magisk
+    
+    for su_path in /system/bin/su /system/xbin/su; do
+        if [ -f "$su_path" ] && [ ! -L "$su_path" ]; then
+            mv "$su_path" "${su_path}.orig"
+        fi
+        ln -sf /sbin/su "$su_path"
+    done
+    
+    # Initialize magisk.db if it doesn't exist or is empty
+    if [ ! -s /data/adb/magisk.db ]; then
+        magisk --sqlite "VACUUM;"
+        chmod 600 /data/adb/magisk.db
+    fi
+
     for s in /data/adb/modules/*/post-fs-data.sh; do
         if [ -f "$s" ]; then
             echo "Running post-fs-data: $s" >> "$LOG_FILE"
