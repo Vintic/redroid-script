@@ -13,6 +13,9 @@ class IntegrityBox(General):
     
     module_dir = os.path.join(copy_dir, "data", "adb", "modules", "integrity_box")
 
+    def __init__(self, android_version="13.0.0"):
+        self.android_version = android_version
+
     def download(self):
         print_color("Downloading Integrity-Box now .....", bcolors.GREEN)
         if os.path.isfile(self.dl_file_name):
@@ -52,7 +55,54 @@ class IntegrityBox(General):
                 if file == "zygiskd" or file == "rezygiskd" or file.endswith(".so") or file.endswith(".sh"):
                     run(["chmod", "755", os.path.join(root, file)])
 
+        # Apply automatic spoofing configuration
+        self.spoof()
         print_color("Integrity-Box Magisk module deployed successfully.", bcolors.CYAN)
+
+    def spoof(self):
+        """
+        Configure IntegrityBox to automatically spoof a Pixel 7 (Android 13).
+        """
+        fingerprint_dir = os.path.join(self.module_dir, "fingerprint")
+        os.makedirs(fingerprint_dir, exist_ok=True)
+
+        # Pixel 7 (panther) Android 13 props
+        fingerprint = "google/panther/panther:13/TQ3A.230901.001/10750268:user/release-keys"
+        build_id = "TQ3A.230901.001"
+        incremental = "10750268"
+        security_patch = "2023-09-01"
+
+        with open(os.path.join(fingerprint_dir, "custom.pif.prop"), "w") as f:
+            f.write(f"""# Build Fields
+MANUFACTURER=Google
+MODEL=Pixel 7
+FINGERPRINT={fingerprint}
+BRAND=google
+PRODUCT=panther
+DEVICE=panther
+RELEASE=13
+ID={build_id}
+INCREMENTAL={incremental}
+TYPE=user
+TAGS=release-keys
+SECURITY_PATCH={security_patch}
+DEVICE_INITIAL_SDK_INT=33
+
+# System Properties
+*.build.id={build_id}
+*.security_patch={security_patch}
+*api_level=33
+
+# Advanced Settings
+spoofBuild=1
+spoofProps=1
+spoofProvider=0
+spoofSignature=1
+spoofVendingFinger=1
+spoofVendingSdk=0
+spoofPixel=1
+""")
+        print_color("Applied automatic Pixel 7 (Android 13) integrity spoofing config", bcolors.GREEN)
 
     def install(self):
         print_color("Installing Integrity-Box .....", bcolors.GREEN)

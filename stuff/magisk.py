@@ -28,20 +28,19 @@ service bootanim /system/bin/bootanimation
     bootanim_component = """
 on post-fs-data
     start logd
-    # ========== SELinux策略配置 ==========
-    # 注意：以下magiskpolicy命令仅在SELinux启用时才能正常运行
-    # 在redroid等禁用SELinux的环境中，这些命令会导致进程崩溃(SIGABRT信号)
-    # 如果在SELinux禁用的环境中遇到magiskpolicy崩溃，请注释掉下面三行
-    # exec u:r:su:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
-    # exec u:r:magisk:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
-    # exec u:r:update_engine:s0 root root -- {MAGISKSYSTEMDIR}/magiskpolicy --live --magisk
-    # =======================================
     exec u:r:su:s0 root root -- {MAGISKSYSTEMDIR}/{magisk_name} --auto-selinux --setup-sbin {MAGISKSYSTEMDIR} {MAGISKTMP}
     exec u:r:su:s0 root root -- {MAGISKTMP}/magisk --auto-selinux --post-fs-data
+    # Manually trigger module post-fs-data scripts
+    exec -- /system/bin/sh {MAGISKSYSTEMDIR}/setup_modules.sh post-fs-data
+
 on nonencrypted
     exec u:r:su:s0 root root -- {MAGISKTMP}/magisk --auto-selinux --service
+    # Manually trigger module service scripts
+    exec -- /system/bin/sh {MAGISKSYSTEMDIR}/setup_modules.sh service
+
 on property:vold.decrypt=trigger_restart_framework
     exec u:r:su:s0 root root -- {MAGISKTMP}/magisk --auto-selinux --service
+
 on property:sys.boot_completed=1
     mkdir /data/adb/magisk 755
     exec u:r:su:s0 root root -- {MAGISKTMP}/magisk --auto-selinux --boot-complete
@@ -84,6 +83,44 @@ on property:init.svc.zygote=stopped
                 shutil.copyfile(o_path, n_path)
                 run(["chmod", "+x", n_path])
         shutil.copyfile(self.dl_file_name, os.path.join(self.magisk_dir,"magisk.apk") )
+
+        # Create module setup script
+        setup_script_path = os.path.join(self.magisk_dir, "setup_modules.sh")
+        with open(setup_script_path, "w") as f:
+            f.write("""#!/system/bin/sh
+# Bridge script to run Magisk module scripts in redroid
+STAGE=$1
+LOG_FILE="/data/local/tmp/setup_modules.log"
+# Set PATH to include magisk applets
+export PATH=/sbin:/system/bin:/system/xbin:$PATH
+
+echo "[$(date)] Stage: $STAGE" >> "$LOG_FILE"
+
+if [ "$STAGE" = "post-fs-data" ]; then
+    for s in /data/adb/modules/*/post-fs-data.sh; do
+        if [ -f "$s" ]; then
+            echo "Running post-fs-data: $s" >> "$LOG_FILE"
+            # Ensure script is executable
+            chmod 755 "$s"
+            sh "$s" >> "$LOG_FILE" 2>&1
+        fi
+    done
+elif [ "$STAGE" = "service" ]; then
+    for s in /data/adb/modules/*/service.sh; do
+        if [ -f "$s" ]; then
+            echo "Running service: $s" >> "$LOG_FILE"
+            chmod 755 "$s"
+            # Try to run in background in a way that escapes init cleanup
+            (sh "$s" >> "$LOG_FILE" 2>&1 &)
+        fi
+    done
+fi
+""")
+        run(["chmod", "+x", setup_script_path])
+
+        # Pre-create /data/adb/magisk to help modules detect Magisk
+        magisk_adb_dir = os.path.join(self.copy_dir, "data", "adb", "magisk")
+        os.makedirs(magisk_adb_dir, exist_ok=True)
 
         # Updating Magisk from Magisk manager will modify bootanim.rc, 
         # So it is necessary to backup the original bootanim.rc.

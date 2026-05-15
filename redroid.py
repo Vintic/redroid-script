@@ -98,11 +98,11 @@ def main():
         dockerfile = dockerfile + "COPY rezygisk_overlay /\n"
         tags.append("rezygisk")
     if args.integrity_box:
-        IntegrityBox().install()
+        IntegrityBox(args.android).install()
         dockerfile = dockerfile + "COPY integrity_box_overlay /\n"
         tags.append("integritybox")
     if args.devicespooflab:
-        DeviceSpoofLab().install()
+        DeviceSpoofLab(args.android).install()
         dockerfile = dockerfile + "COPY devicespooflab_overlay /\n"
         tags.append("devicespooflab")
     if args.ndk:
