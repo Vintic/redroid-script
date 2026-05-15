@@ -8,6 +8,8 @@ from stuff.microg import MicroG
 from stuff.mindthegapps import MindTheGapps
 from stuff.ndk import Ndk
 from stuff.reZygisk import ReZygisk
+from stuff.integrity_box import IntegrityBox
+from stuff.devicespooflab import DeviceSpoofLab
 from stuff.widevine import Widevine
 import tools.helper as helper
 import subprocess
@@ -46,6 +48,14 @@ def main():
     parser.add_argument('-rz', '--install-rezygisk',
                         dest='rezygisk',
                         help='Install ReZygisk to ReDroid',
+                        action='store_true')
+    parser.add_argument('-ib', '--install-integrity-box',
+                        dest='integrity_box',
+                        help='Install Integrity Box to ReDroid',
+                        action='store_true')
+    parser.add_argument('-dsl', '--install-devicespooflab',
+                        dest='devicespooflab',
+                        help='Install DeviceSpoofLab to ReDroid',
                         action='store_true')
     parser.add_argument('-m', '--install-magisk', dest='magisk',
                         help='Install Magisk ( Bootless )',
@@ -87,6 +97,14 @@ def main():
         ReZygisk().install()
         dockerfile = dockerfile + "COPY rezygisk_overlay /\n"
         tags.append("rezygisk")
+    if args.integrity_box:
+        IntegrityBox().install()
+        dockerfile = dockerfile + "COPY integrity_box_overlay /\n"
+        tags.append("integritybox")
+    if args.devicespooflab:
+        DeviceSpoofLab().install()
+        dockerfile = dockerfile + "COPY devicespooflab_overlay /\n"
+        tags.append("devicespooflab")
     if args.ndk:
         if args.android in ["11.0.0", "12.0.0", "12.0.0_64only"]:
             arch = helper.host()[0]

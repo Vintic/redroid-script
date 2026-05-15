@@ -1,0 +1,6 @@
+id=devicespooflab
+name=DeviceSpoofLabs
+version=2.3
+versionCode=6
+author=@yubunus
+description=Configurable device prop spoofing with persona management and app data clearing tools. Includes CLI (devicespooflabs). For development and testing only.
