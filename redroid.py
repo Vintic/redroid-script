@@ -11,6 +11,7 @@ from stuff.reZygisk import ReZygisk
 from stuff.integrity_box import IntegrityBox
 from stuff.devicespooflab import DeviceSpoofLab
 from stuff.frida import Frida
+from stuff.apps import Apps
 from stuff.widevine import Widevine
 import tools.helper as helper
 import subprocess
@@ -61,6 +62,10 @@ def main():
     parser.add_argument('-fr', '--install-frida',
                         dest='frida',
                         help='Install Frida-server to ReDroid',
+                        action='store_true')
+    parser.add_argument('-ap', '--install-apps',
+                        dest='apps',
+                        help='Install provided APKs (Chrome, AirCanada) to ReDroid',
                         action='store_true')
     parser.add_argument('-m', '--install-magisk', dest='magisk',
                         help='Install Magisk ( Bootless )',
@@ -114,6 +119,10 @@ def main():
         Frida(args.android).install()
         dockerfile = dockerfile + "COPY frida_overlay /\n"
         tags.append("frida")
+    if args.apps:
+        Apps(args.android).install()
+        dockerfile = dockerfile + "COPY apps_overlay /\n"
+        tags.append("apps")
     if args.ndk:
         if args.android in ["11.0.0", "12.0.0", "12.0.0_64only"]:
             arch = helper.host()[0]
