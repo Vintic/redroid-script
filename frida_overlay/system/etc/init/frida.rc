@@ -1,6 +1,0 @@
-
-service frida-server /system/bin/frida-server -l 0.0.0.0
-    class core
-    user root
-    group root
-    oneshot

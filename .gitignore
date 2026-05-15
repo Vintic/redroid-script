@@ -122,6 +122,7 @@ Dockerfile
 ./mindthegapps
 ./Dockerfile
 ./microg
+*_overlay/
 
 # Beads / Dolt files (added by bd init)
 .dolt/
