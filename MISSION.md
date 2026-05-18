@@ -15,8 +15,10 @@ We are working on a fork from `https://github.com/DingoDemon/redroid-script.git`
 - [x] Verify `MicroG` installation logic.
 - [x] Implement `Integrity-Box` integration in `stuff/integrity_box.py`.
 - [x] Implement `DeviceSpoofLab` integration in `stuff/devicespooflab.py`.
-- [ ] Implement `Frida` integration in `stuff/frida.py`.
-- [ ] Test the combined build with Magisk, ReZygisk, MicroG, Integrity-Box, DeviceSpoofLab, and Frida.
+- [x] Implement `Frida` integration in `stuff/frida.py`.
+- [x] Fix Magisk "Additional Setup" prompt and root compatibility.
+- [x] Test the combined build with Magisk, ReZygisk, MicroG, Integrity-Box, DeviceSpoofLab, and Frida.
+
 
 
 ## Key Files

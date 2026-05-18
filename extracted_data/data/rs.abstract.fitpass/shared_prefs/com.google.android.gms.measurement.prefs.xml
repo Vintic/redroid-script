@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <long name="last_upload" value="1779083469466" />
+    <long name="first_open_time" value="1779079430628" />
+    <string name="gmp_app_id">1:457877920796:android:8a282358baa89c05</string>
+    <string name="app_instance_id">5b85cd195a7c0f4284bcb902bdf6958f</string>
+    <long name="session_id" value="1779079430" />
+    <boolean name="app_backgrounded" value="true" />
+    <long name="health_monitor:start" value="1779079427042" />
+    <long name="deferred_attribution_cache_timestamp" value="0" />
+    <boolean name="deferred_analytics_collection" value="false" />
+    <long name="last_delete_stale" value="2756316" />
+    <string name="default_event_parameters">[{&quot;n&quot;:&quot;plan&quot;,&quot;v&quot;:&quot;Classic&quot;,&quot;t&quot;:&quot;s&quot;},{&quot;n&quot;:&quot;user_type&quot;,&quot;v&quot;:&quot;commercial&quot;,&quot;t&quot;:&quot;s&quot;},{&quot;n&quot;:&quot;membership_status&quot;,&quot;v&quot;:&quot;1&quot;,&quot;t&quot;:&quot;l&quot;}]</string>
+    <string name="previous_os_version">16</string>
+    <boolean name="has_been_opened" value="true" />
+    <string name="health_monitor:value">2WC133005:Service invalid</string>
+    <boolean name="allow_remote_dynamite" value="true" />
+    <long name="last_pause_time" value="1779080715546" />
+    <long name="midnight_offset" value="27939957" />
+    <boolean name="start_new_session" value="false" />
+    <long name="health_monitor:count" value="3" />
+    <long name="last_upload_attempt" value="0" />
+</map>

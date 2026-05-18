@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="ENCRYPTED_PREFERENCES_MIGRATED" value="true" />
+    <string name="FlutterSecureSAlgorithmStorage">AES_GCM_NoPadding</string>
+    <string name="FlutterSecureSAlgorithmKey">RSA_ECB_OAEPwithSHA_256andMGF1Padding</string>
+</map>

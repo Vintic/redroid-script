@@ -1,7 +1,7 @@
 import os
 import shutil
 from stuff.general import General
-from tools.helper import bcolors, print_color
+from tools.helper import bcolors, print_color, run
 
 class Apps(General):
     copy_dir = "./apps_overlay"
@@ -19,6 +19,9 @@ class Apps(General):
         
         # 2. Install Air Canada
         self.install_aircanada()
+        
+        # 3. Install FitPass
+        self.install_fitpass()
         
         print_color("Apps deployment overlay generated successfully.", bcolors.CYAN)
 
@@ -63,6 +66,35 @@ class Apps(General):
         for item in os.listdir(ac_src):
             if item.endswith(".apk"):
                 shutil.copy2(os.path.join(ac_src, item), ac_dest)
+
+    def install_fitpass(self):
+        print_color("Deploying FitPass App and data...", bcolors.GREEN)
+        fp_src = os.path.join(self.apks_dir, "fitpass_apks")
+        fp_dest = os.path.join(self.copy_dir, "system", "app", "FitPass")
+        os.makedirs(fp_dest, exist_ok=True)
+        
+        # Copy FitPass splits
+        if os.path.exists(fp_src):
+            for item in os.listdir(fp_src):
+                if item.endswith(".apk"):
+                    shutil.copy2(os.path.join(fp_src, item), fp_dest)
+        
+        # Copy data
+        fp_data_src = "extracted_data/data/rs.abstract.fitpass"
+        fp_data_dest = os.path.join(self.copy_dir, "data", "data", "rs.abstract.fitpass")
+        if os.path.exists(fp_data_src):
+            os.makedirs(fp_data_dest, exist_ok=True)
+            # Use cp -a to preserve as much as possible, though we'll need to fix permissions later
+            run(["cp", "-a", f"{fp_data_src}/.", fp_data_dest])
+        
+        # Create an init script to fix permissions on boot
+        init_dir = os.path.join(self.copy_dir, "system", "etc", "init")
+        os.makedirs(init_dir, exist_ok=True)
+        with open(os.path.join(init_dir, "fitpass_data.rc"), "w") as f:
+            f.write("""
+on property:sys.boot_completed=1
+    exec -- /system/bin/sh -c "PKG=rs.abstract.fitpass; DATA_DIR=/data/data/$PKG; if [ -d $DATA_DIR ]; then APP_UID=$(pm list packages -U | grep $PKG | cut -d: -f3); if [ ! -z $APP_UID ]; then chown -R $APP_UID:$APP_UID $DATA_DIR; chmod -R 700 $DATA_DIR; fi; fi"
+""")
 
     def install(self):
         self.copy()

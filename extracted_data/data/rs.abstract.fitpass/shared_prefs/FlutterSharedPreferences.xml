@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="flutter.sentryVC">VC1389982</string>
+    <long name="flutter.prefsMigrationVersion" value="1" />
+    <long name="flutter.successfulCheckInCount" value="2" />
+    <boolean name="flutter.askedInitialLocationPermission" value="true" />
+    <string name="flutter.sentryConfig">{&quot;reportingEnabled&quot;:true,&quot;traceSampler&quot;:{&quot;globalDefaultTraceSampleRate&quot;:0.2,&quot;traceSampleConfigs&quot;:[{&quot;traceName&quot;:&quot;&quot;,&quot;sampleRate&quot;:0.2}]},&quot;replayConfig&quot;:{&quot;sessionSampleRate&quot;:0.0,&quot;onErrorSampleRate&quot;:0.0,&quot;maskAllText&quot;:false,&quot;maskAllImages&quot;:false},&quot;reportIntercomErrors&quot;:false,&quot;disabledSubCodes&quot;:[],&quot;disabledCodes&quot;:[{&quot;apiCode&quot;:101,&quot;disabled&quot;:false,&quot;subCodes&quot;:[],&quot;responseCodes&quot;:[403]},{&quot;apiCode&quot;:102,&quot;disabled&quot;:true,&quot;subCodes&quot;:[],&quot;responseCodes&quot;:[]},{&quot;apiCode&quot;:103,&quot;disabled&quot;:false,&quot;subCodes&quot;:[],&quot;responseCodes&quot;:[422]}]}</string>
+    <string name="flutter.sentryUUID">3295cda3173c75c6</string>
+    <string name="flutter.lastLocationLatitude">VGhpcyBpcyB0aGUgcHJlZml4IGZvciBEb3VibGUu47.07215259288039</string>
+    <long name="flutter.checkInWeekCounter" value="19" />
+    <string name="flutter.lastLocationLongitude">VGhpcyBpcyB0aGUgcHJlZml4IGZvciBEb3VibGUu28.864048291967954</string>
+    <long name="flutter.lastLocationTimestamp" value="1779079434949" />
+</map>

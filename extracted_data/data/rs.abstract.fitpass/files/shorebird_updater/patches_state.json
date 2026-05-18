@@ -1,0 +1,6 @@
+{
+  "last_booted_patch": null,
+  "next_boot_patch": null,
+  "currently_booting_patch": null,
+  "known_bad_patches": []
+}
